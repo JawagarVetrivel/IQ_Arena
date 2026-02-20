@@ -1,0 +1,33 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Deny all by default to be perfectly secure against untrusted clients
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    // Only allow public read access to specific collections
+    // The Admin SDK used by the backend bypasses these rules automatically
+    
+    match /challenges/{challengeId} {
+      allow read: if true; // Frontend can read challenges
+      allow write: if false;
+    }
+    
+    match /participants/{participantId} {
+      allow read: if true; // Frontend can read participants (for leaderboard)
+      allow write: if false;
+    }
+    
+    match /questions/{questionId} {
+      allow read: if false; // Only backend can read questions securely!
+      allow write: if false;
+    }
+    
+    match /quizSessions/{sessionId} {
+      allow read: if false; // Only backend can read sessions
+      allow write: if false;
+    }
+  }
+}
