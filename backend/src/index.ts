@@ -13,8 +13,8 @@ app.use(helmet());
 
 // Restrict CORS to our frontend domain (adjust in production)
 const allowedOrigins = process.env.NODE_ENV === 'production'
-    ? ['https://your-frontend-domain.vercel.app']
-    : ['http://localhost:5173', 'http://localhost:3000'];
+    ? ['https://iq-arena-fnt.vercel.app', 'https://your-frontend-domain.vercel.app']
+    : ['http://localhost:5173', 'http://localhost:3000', 'https://iq-arena-fnt.vercel.app'];
 
 app.use(cors({
     origin: (origin, callback) => {
