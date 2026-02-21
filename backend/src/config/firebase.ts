@@ -8,7 +8,16 @@ let serviceAccount: any;
 try {
     if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
         // Vercel deployment: use environment variable
-        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+        const envVar = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+        try {
+            serviceAccount = JSON.parse(envVar);
+            // Some deployment platforms escape the actual newline chars
+            if (serviceAccount.private_key) {
+                serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+            }
+        } catch (parseError) {
+            console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY:', parseError);
+        }
     } else {
         // Local deployment: use file
         const serviceAccountPath = path.resolve(process.cwd(), 'serviceAccountKey.json');
