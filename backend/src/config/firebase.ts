@@ -6,17 +6,22 @@ import fs from 'fs';
 let serviceAccount: any;
 
 try {
-    if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
-        // Vercel deployment: use environment variable
+    if (process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
+        // Vercel deployment: use Base64 environment variable to bypass all newline escaping bugs
+        const base64String = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64;
+        try {
+            const decodedString = Buffer.from(base64String, 'base64').toString('utf8');
+            serviceAccount = JSON.parse(decodedString);
+        } catch (parseError) {
+            console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_BASE64:', parseError);
+        }
+    } else if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+        // Fallback for older plaintext vercel deployment
         const envVar = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
         try {
             serviceAccount = JSON.parse(envVar);
-            // Vercel dashboard flattens multi-line strings. Restore actual newlines needed by Firebase Admin.
             if (serviceAccount.private_key) {
-                // Handle Vercel literal string "\\n" properly by decoding it to an actual regex newline
                 serviceAccount.private_key = serviceAccount.private_key.replace(/\\\\n/g, '\n').replace(/\\n/g, '\n');
-
-                // Ensure it ends with a newline if missing
                 if (!serviceAccount.private_key.endsWith('\n')) {
                     serviceAccount.private_key += '\n';
                 }
