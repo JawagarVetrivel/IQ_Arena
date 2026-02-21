@@ -42,6 +42,15 @@ app.get('/health', (req, res) => {
     res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+// Root friendly endpoint
+app.get('/', (req, res) => {
+    res.status(200).json({
+        message: 'Welcome to the IQ Arena API',
+        status: 'Online',
+        endpoints: ['/api/start-quiz', '/api/submit-test', '/api/leaderboard/:challengeId']
+    });
+});
+
 // Import and register routes
 import quizRoutes from './routes/quiz';
 import leaderboardRoutes from './routes/leaderboard';
