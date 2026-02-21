@@ -44,7 +44,14 @@ export const getLeaderboard = async (req: Request, res: Response) => {
             };
         });
 
+        const challengeData = challengeDoc.data() as any;
+
         return res.status(200).json({
+            challengeRecord: {
+                creatorName: challengeData.creatorName || "Arena Master",
+                creatorScore: challengeData.creatorScore || 0,
+                creatorTitle: challengeData.creatorTitle || "Unknown"
+            },
             participants,
             totalParticipants: participants.length
         });
