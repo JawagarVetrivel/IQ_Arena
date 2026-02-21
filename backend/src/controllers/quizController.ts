@@ -105,21 +105,21 @@ export const submitTest = async (req: Request, res: Response) => {
             }
         }
 
-        // Validate answers length
-        if (answers.length !== 20 && answers.length !== sessionData?.questionIds.length) {
+        // Validate answers length (cannot submit MORE answers than questions in the session)
+        const sessionQuestionIds: string[] = sessionData?.questionIds || [];
+        if (answers.length > sessionQuestionIds.length) {
             return res.status(400).json({ error: 'Invalid answers length' });
         }
 
-        // Validate questionIds match
-        const sessionQuestionIds: string[] = sessionData?.questionIds || [];
+        // Validate questionIds match (no foreign question IDs allowed)
         const providedQuestionIds = answers.map((a: any) => a.questionId);
-        const hasAllQuestions = sessionQuestionIds.every((id: string) => providedQuestionIds.includes(id));
-        if (!hasAllQuestions) {
+        const hasForeignQuestions = providedQuestionIds.some((id: string) => !sessionQuestionIds.includes(id));
+        if (hasForeignQuestions) {
             return res.status(400).json({ error: 'Question IDs mismatch' });
         }
 
-        // Validate timeTaken (min 30 sec to 1500 sec limit)
-        const minTime = 30;
+        // Validate timeTaken (min 2 sec to 1500 sec limit)
+        const minTime = 2;
         const maxTime = 1500;
         if (timeTaken < minTime || timeTaken > maxTime) {
             return res.status(400).json({ error: 'Invalid timeTaken' });
