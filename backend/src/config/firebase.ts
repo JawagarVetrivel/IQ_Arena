@@ -11,9 +11,15 @@ try {
         const envVar = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
         try {
             serviceAccount = JSON.parse(envVar);
-            // Some deployment platforms escape the actual newline chars
+            // Vercel dashboard flattens multi-line strings. Restore actual newlines needed by Firebase Admin.
             if (serviceAccount.private_key) {
+                // Handle both literal string "\n" and escaped "\\n"
                 serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+
+                // Ensure it ends with a newline if missing
+                if (!serviceAccount.private_key.endsWith('\n')) {
+                    serviceAccount.private_key += '\n';
+                }
             }
         } catch (parseError) {
             console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY:', parseError);
