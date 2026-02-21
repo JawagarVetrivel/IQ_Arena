@@ -44,26 +44,37 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/api/debug-env', (req, res) => {
-    const key = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+    const buildMarker = "10:30_VERCEL_EDGE_FLUSH";
+    const plainKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+    const base64Key = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64;
+
     let parsable = false;
     let parseError = null;
     let finalKey = null;
 
-    if (key) {
-        try {
-            const parsed = JSON.parse(key);
+    try {
+        if (base64Key) {
+            const decodedString = Buffer.from(base64Key, 'base64').toString('utf8');
+            const parsed = JSON.parse(decodedString);
             parsable = true;
             if (parsed.private_key) {
                 finalKey = parsed.private_key.substring(0, 40) + '...';
             }
-        } catch (e: any) {
-            parseError = e.message;
+        } else if (plainKey) {
+            const parsed = JSON.parse(plainKey);
+            parsable = true;
+            if (parsed.private_key) {
+                finalKey = parsed.private_key.substring(0, 40) + '...';
+            }
         }
+    } catch (e: any) {
+        parseError = e.message;
     }
 
     res.status(200).json({
-        hasEnvVar: !!key,
-        length: key ? key.length : 0,
+        buildMarker,
+        hasPlainEnv: !!plainKey,
+        hasBase64Env: !!base64Key,
         parsable,
         parseError,
         peek: finalKey,
