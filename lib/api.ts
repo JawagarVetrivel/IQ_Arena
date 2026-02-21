@@ -50,8 +50,11 @@ export const getLeaderboard = async (challengeId: string): Promise<ChallengeData
 
   // Map backend response back to frontend expected shape
   return {
-    challengerName: data.participants[0]?.name || "Arena Master",
-    challengerScore: data.participants[0]?.score || 0,
+    challengeRecord: {
+      creatorName: data.challengeRecord?.creatorName || "Arena Master",
+      creatorScore: data.challengeRecord?.creatorScore || 0,
+      creatorTitle: data.challengeRecord?.creatorTitle || "Unknown"
+    },
     totalParticipants: data.totalParticipants,
     leaderboard: data.participants,
   };

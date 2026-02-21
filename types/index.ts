@@ -18,6 +18,7 @@ export interface QuizResult {
   percentile: number;
   title: string;
   challengeId: string;
+  sharedChallengeId: string; // The branch they will share
   totalParticipants: number;
 }
 
@@ -30,8 +31,11 @@ export interface LeaderboardEntry {
 }
 
 export interface ChallengeData {
-  challengerName: string;
-  challengerScore: number;
+  challengeRecord: {
+    creatorName: string;
+    creatorScore: number;
+    creatorTitle: string;
+  };
   totalParticipants: number;
   leaderboard: LeaderboardEntry[];
 }

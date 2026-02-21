@@ -42,13 +42,13 @@ const ChallengePage: React.FC = () => {
             {data?.totalParticipants} {data?.totalParticipants === 1 ? 'Challenger' : 'Participants'} in this Arena
           </div>
           <h1 className="text-5xl md:text-8xl font-black text-white tracking-tighter uppercase leading-none">
-            {data?.challengerName} SETS THE <span className="text-blue-500 italic">PACE</span>
+            {data?.challengeRecord?.creatorName} SETS THE <span className="text-blue-500 italic">PACE</span>
           </h1>
           <p className="text-xl text-white/60 max-w-xl mx-auto font-light">
-            Target Score: <span className="font-bold text-white">{data?.challengerScore} IQ</span>. 
+            Target Score: <span className="font-bold text-white">{data?.challengeRecord?.creatorScore} IQ</span>.
             Do you have the cognitive speed to take the lead?
           </p>
-          <Button 
+          <Button
             className="px-12 py-6 text-xl"
             onClick={() => navigate(`/quiz?challengeId=${challengeId}`)}
           >
@@ -62,10 +62,10 @@ const ChallengePage: React.FC = () => {
               <span className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3 text-sm">#</span>
               Arena Leaderboard
             </h3>
-            <Leaderboard 
-              entries={data?.leaderboard || []} 
+            <Leaderboard
+              entries={data?.leaderboard || []}
               totalParticipants={data?.totalParticipants}
-              isLoading={loading} 
+              isLoading={loading}
             />
             {isFewParticipants && (
               <div className="p-6 bg-white/5 border border-dashed border-white/20 rounded-2xl text-center">
@@ -93,7 +93,7 @@ const ChallengePage: React.FC = () => {
                 </div>
               </div>
             </div>
-            
+
             <AdSlot />
           </div>
         </div>

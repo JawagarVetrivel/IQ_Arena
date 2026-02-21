@@ -33,7 +33,7 @@ const ResultPage: React.FC = () => {
   }
 
   const shareText = `I just scored ${result.score} IQ in this Arena Challenge! Only ${100 - result.percentile}% beat me. Can you?`;
-  const shareUrl = `${window.location.origin}/?challengeId=${result.challengeId}`;
+  const shareUrl = `${window.location.origin}/?challengeId=${result.sharedChallengeId}`;
   const isFewParticipants = (arenaData?.totalParticipants || 0) < 3;
 
   return (
