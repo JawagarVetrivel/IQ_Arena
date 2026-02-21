@@ -44,7 +44,7 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/api/debug-env', (req, res) => {
-    const buildMarker = "10:30_VERCEL_EDGE_FLUSH";
+    const buildMarker = "10:35_VERCEL_ENV_PULL";
     const plainKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
     const base64Key = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64;
 
