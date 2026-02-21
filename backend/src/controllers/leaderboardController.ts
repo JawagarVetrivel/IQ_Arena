@@ -28,14 +28,19 @@ export const getLeaderboard = async (req: Request, res: Response) => {
             return res.status(404).json({ error: 'Challenge not found' });
         }
 
-        // Fetch participants matching challengeId, descending by score
+        // Fetch participants matching challengeId
+        // We removed .orderBy('score', 'desc') to bypass Firebase's strict Compound Index requirements
+        // Doing the sort locally securely guarantees it will work across all edge nodes immediately
         const participantsSnapshot = await db.collection('participants')
             .where('challengeId', '==', challengeId)
-            .orderBy('score', 'desc')
             .get();
 
-        const participants = participantsSnapshot.docs.map((doc, index) => {
-            const data = doc.data();
+        let rawParticipants = participantsSnapshot.docs.map(doc => doc.data());
+
+        // Sort descending in memory
+        rawParticipants.sort((a, b) => b.score - a.score);
+
+        const participants = rawParticipants.map((data: any, index: number) => {
             return {
                 rank: index + 1,
                 name: data.userName,
