@@ -167,6 +167,16 @@ export const submitTest = async (req: Request, res: Response) => {
         if (iqScore < 80) iqScore = 80;
         if (iqScore > 145) iqScore = 145;
 
+        // Determine title
+        const titleLogic = (score: number) => {
+            if (score < 90) return 'Raw Potential';
+            if (score <= 105) return 'Above Average';
+            if (score <= 120) return 'Strategic Thinker';
+            if (score <= 135) return 'Elite Problem Solver';
+            return 'Rare Mind';
+        };
+        const title = titleLogic(iqScore);
+
         // Challenge handling
         let finalChallengeId = challengeId;
         if (!finalChallengeId) {
@@ -175,6 +185,8 @@ export const submitTest = async (req: Request, res: Response) => {
             await db.collection('challenges').doc(finalChallengeId).set({
                 challengeId: finalChallengeId,
                 creatorName: sanitizedUserName,
+                creatorScore: iqScore,
+                creatorTitle: title,
                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
                 maxParticipants: 25,
                 closed: false
@@ -213,17 +225,7 @@ export const submitTest = async (req: Request, res: Response) => {
             percentile = Math.round((lowerCount / totalParticipants) * 100);
         }
 
-        // Write Participant record
-        const titleLogic = (score: number) => {
-            if (score < 90) return 'Raw Potential';
-            if (score <= 105) return 'Above Average';
-            if (score <= 120) return 'Strategic Thinker';
-            if (score <= 135) return 'Elite Problem Solver';
-            return 'Rare Mind';
-        };
-
-        const title = titleLogic(iqScore);
-
+        // Build Participant Record
         const participantData = {
             challengeId: finalChallengeId,
             userName: sanitizedUserName,
@@ -235,12 +237,27 @@ export const submitTest = async (req: Request, res: Response) => {
 
         await db.collection('participants').add(participantData);
 
-        // Return response
+        // VIRAL SPREAD MECHANIC: Always generate a brand new Challenge for this user to share.
+        // This ensures every person who takes the test gets their own clean leaderboard 
+        // while setting the pace for their friends with their newly achieved score.
+        const sharedChallengeId = uuidv4();
+        await db.collection('challenges').doc(sharedChallengeId).set({
+            challengeId: sharedChallengeId,
+            creatorName: sanitizedUserName,
+            creatorScore: iqScore,
+            creatorTitle: title,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            maxParticipants: 25,
+            closed: false
+        });
+
+        // Return response mapping the new sharedChallengeId for their friends
         return res.status(200).json({
             score: iqScore,
             percentile,
             title,
-            challengeId: finalChallengeId,
+            challengeId: finalChallengeId, // The arena they just played in
+            sharedChallengeId: sharedChallengeId, // The arena they will now share
             totalParticipants
         });
 
