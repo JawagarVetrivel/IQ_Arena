@@ -1,6 +1,6 @@
 import { QuizSubmission, QuizResult, ChallengeData, Question } from '../types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://iq-arena-blush.vercel.app/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://iq-arena-sigma.vercel.app/api';
 
 export const startQuiz = async (): Promise<{ quizSessionId: string; questions: Question[] }> => {
   const response = await fetch(`${API_URL}/start-quiz`, {
