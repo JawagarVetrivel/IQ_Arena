@@ -7,15 +7,20 @@ let serviceAccount: any;
 
 try {
     if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+        // Vercel deployment: use environment variable
         serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
     } else {
-        // Determine the absolute path to backend/serviceAccountKey.json
-        // __dirname is usually /src/config, so we go up two levels to /backend
-        const serviceAccountPath = path.resolve(__dirname, '../../serviceAccountKey.json');
+        // Local deployment: use file
+        const serviceAccountPath = path.resolve(process.cwd(), 'serviceAccountKey.json');
         if (fs.existsSync(serviceAccountPath)) {
             serviceAccount = require(serviceAccountPath);
         } else {
-            console.warn('⚠️ Warning: serviceAccountKey.json not found and FIREBASE_SERVICE_ACCOUNT_KEY env var not set.');
+            const fallbackPath = path.resolve(__dirname, '../../serviceAccountKey.json');
+            if (fs.existsSync(fallbackPath)) {
+                serviceAccount = require(fallbackPath);
+            } else {
+                console.warn('⚠️ Warning: serviceAccountKey.json not found and FIREBASE_SERVICE_ACCOUNT_KEY env var not set.');
+            }
         }
     }
 
