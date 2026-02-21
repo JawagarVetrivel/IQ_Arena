@@ -9,6 +9,9 @@ import { db } from './config/firebase';
 
 const app = express();
 
+// Set trust proxy for Vercel's edge network so rate-limiter works
+app.set('trust proxy', 1);
+
 // Security Middlewares
 app.use(helmet());
 
