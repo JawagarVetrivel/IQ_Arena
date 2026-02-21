@@ -5,7 +5,7 @@ import { QUESTIONS } from '../constants';
 import { Timer } from '../components/Timer';
 import { QuestionCard } from '../components/QuestionCard';
 import { Button } from '../components/Button';
-import { submitTest } from '../lib/api';
+import { startQuiz, submitTest } from '../lib/api';
 import { Question } from '../types';
 
 const SESSION_QUESTION_COUNT = 20;
@@ -19,15 +19,12 @@ const QuizPage: React.FC = () => {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [startTime] = useState(Date.now());
+  const [isFetching, setIsFetching] = useState(false);
+  const [startTime, setStartTime] = useState<number | null>(null);
   const [userName, setUserName] = useState('');
   const [isStarted, setIsStarted] = useState(false);
-
-  // Randomly select 20 questions ONCE per session.
-  // Dependency is empty array to ensure stable array reference throughout the quiz lifecycle.
-  const activeQuestions = useMemo(() => {
-    return [...QUESTIONS].sort(() => 0.5 - Math.random()).slice(0, SESSION_QUESTION_COUNT);
-  }, []);
+  const [quizSessionId, setQuizSessionId] = useState<string | null>(null);
+  const [activeQuestions, setActiveQuestions] = useState<Question[]>([]);
 
   // Prevent accidental navigation
   useEffect(() => {
@@ -40,24 +37,32 @@ const QuizPage: React.FC = () => {
   }, []);
 
   const finishQuiz = useCallback(async () => {
-    if (isSubmitting) return;
+    if (isSubmitting || !quizSessionId || !startTime) return;
     setIsSubmitting(true);
-    
+
     try {
       const timeTaken = Math.floor((Date.now() - startTime) / 1000);
+
+      // Map local record syntax (questionId -> selection) to API array syntax
+      const formattedAnswers = Object.keys(answers).map(qId => ({
+        questionId: qId,
+        selected: answers[qId]
+      }));
+
       const result = await submitTest({
+        quizSessionId,
         userName: userName || 'Anonymous User',
-        answers,
+        answers: formattedAnswers,
         timeTaken,
         challengeId
       });
       navigate(`/result/${result.challengeId}`, { state: { result } });
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert("Something went wrong during submission. Please check your connection.");
+      alert(error.message || "Something went wrong during submission. Please check your connection.");
       setIsSubmitting(false);
     }
-  }, [isSubmitting, startTime, userName, answers, challengeId, navigate]);
+  }, [isSubmitting, startTime, userName, answers, challengeId, navigate, quizSessionId]);
 
   const handleNext = useCallback(() => {
     if (currentIdx < activeQuestions.length - 1) {
@@ -86,19 +91,34 @@ const QuizPage: React.FC = () => {
           <h1 className="text-4xl font-black uppercase tracking-tighter">Identity Verified</h1>
           <p className="text-white/60">Enter your name to start the secure assessment. Your data is encrypted and sent only to our backend.</p>
           <div className="space-y-4">
-            <input 
-              type="text" 
+            <input
+              type="text"
               placeholder="YOUR FULL NAME"
               className="w-full p-6 bg-white/5 border-2 border-white/10 rounded-2xl text-xl font-bold uppercase tracking-widest text-center focus:border-blue-500 outline-none transition-all"
               value={userName}
               onChange={(e) => setUserName(e.target.value)}
             />
-            <Button 
-              fullWidth 
-              disabled={!userName.trim()} 
-              onClick={() => setIsStarted(true)}
+            <Button
+              fullWidth
+              disabled={!userName.trim() || isFetching}
+              onClick={async () => {
+                if (!userName.trim()) return;
+                setIsFetching(true);
+                try {
+                  const data = await startQuiz();
+                  setQuizSessionId(data.quizSessionId);
+                  setActiveQuestions(data.questions);
+                  setStartTime(Date.now());
+                  setIsStarted(true);
+                } catch (error) {
+                  console.error(error);
+                  alert("Failed to initialize secure session. Please try again.");
+                } finally {
+                  setIsFetching(false);
+                }
+              }}
             >
-              Initialize Assessment
+              {isFetching ? "Establishing Secure Link..." : "Initialize Assessment"}
             </Button>
           </div>
           <div className="text-[10px] text-white/20 uppercase tracking-[0.2em] pt-4">
@@ -148,15 +168,15 @@ const QuizPage: React.FC = () => {
         </div>
 
         {/* Timer Component */}
-        <Timer 
-          duration={20} 
-          onTimeUp={handleNext} 
-          resetKey={currentIdx} 
+        <Timer
+          duration={20}
+          onTimeUp={handleNext}
+          resetKey={currentIdx}
         />
 
         {/* Question Area */}
         <div className="flex-grow flex flex-col justify-center">
-          <QuestionCard 
+          <QuestionCard
             question={currentQuestion}
             selectedOption={answers[currentQuestion.id] || null}
             onSelect={handleOptionSelect}
@@ -165,7 +185,7 @@ const QuizPage: React.FC = () => {
 
         <div className="mt-12 flex justify-between items-center opacity-30">
           <div className="text-[10px] text-white uppercase tracking-[0.3em] font-bold">
-            Encrypted Session: {Math.random().toString(36).substring(7).toUpperCase()}
+            Encrypted Session: {quizSessionId?.substring(0, 8).toUpperCase() || 'UNKNOWN'}
           </div>
           <div className="text-[10px] text-white uppercase tracking-[0.3em] font-bold">
             Pool Index: {currentQuestion.id}

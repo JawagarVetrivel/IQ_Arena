@@ -32,8 +32,8 @@ const ResultPage: React.FC = () => {
     );
   }
 
-  const shareText = `I just scored ${result.iq} IQ in this Arena Challenge! Only ${100 - result.percentile}% beat me. Can you?`;
-  const shareUrl = `${window.location.origin}/#/challenge/${result.challengeId}`;
+  const shareText = `I just scored ${result.score} IQ in this Arena Challenge! Only ${100 - result.percentile}% beat me. Can you?`;
+  const shareUrl = `${window.location.origin}/?challengeId=${result.challengeId}`;
   const isFewParticipants = (arenaData?.totalParticipants || 0) < 3;
 
   return (
@@ -48,14 +48,14 @@ const ResultPage: React.FC = () => {
           {/* Main Result Column */}
           <div className="lg:col-span-7 space-y-12">
             <ResultCard result={result} />
-            
+
             <div className="bg-white/5 border border-white/10 rounded-3xl p-8 text-center space-y-8">
               <h3 className="text-3xl font-black uppercase tracking-tight">Challenge Your Circle</h3>
               <p className="text-white/60 max-w-lg mx-auto">
                 Your results are verified in this arena. Share this link to compete for the top position.
               </p>
               <div className="max-w-md mx-auto">
-                <ShareButton 
+                <ShareButton
                   title="IQ Arena Challenge"
                   text={shareText}
                   url={shareUrl}
@@ -67,12 +67,12 @@ const ResultPage: React.FC = () => {
           {/* Leaderboard Column */}
           <div className="lg:col-span-5 space-y-8">
             <div className="space-y-4">
-              <Leaderboard 
-                entries={arenaData?.leaderboard.map(e => ({ ...e, isCurrentUser: e.name === result.userName })) || []} 
+              <Leaderboard
+                entries={arenaData?.leaderboard || []}
                 totalParticipants={arenaData?.totalParticipants}
-                isLoading={!arenaData} 
+                isLoading={!arenaData}
               />
-              
+
               {isFewParticipants && !arenaData === false && (
                 <div className="p-6 bg-blue-500/10 border border-blue-500/20 rounded-2xl text-center">
                   <p className="text-blue-400 text-sm font-bold uppercase tracking-widest">
@@ -85,10 +85,10 @@ const ResultPage: React.FC = () => {
         </div>
 
         <AdSlot />
-        
+
         <div className="text-center pt-12 pb-6 border-t border-white/5">
-          <button 
-            onClick={() => navigate('/')} 
+          <button
+            onClick={() => navigate('/')}
             className="text-white/40 hover:text-white transition-colors uppercase text-xs font-bold tracking-widest"
           >
             Start New Global Arena

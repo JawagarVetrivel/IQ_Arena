@@ -6,20 +6,19 @@ export interface Question {
 }
 
 export interface QuizSubmission {
+  quizSessionId: string;
   userName: string;
-  answers: Record<string, string>; // questionId -> answer
+  answers: { questionId: string; selected: string }[];
   timeTaken: number;
   challengeId?: string;
 }
 
 export interface QuizResult {
-  iq: number;
+  score: number;
   percentile: number;
   title: string;
-  message: string;
   challengeId: string;
-  userName: string;
-  totalParticipantsInChallenge: number;
+  totalParticipants: number;
 }
 
 export interface LeaderboardEntry {
