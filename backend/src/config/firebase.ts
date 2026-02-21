@@ -13,8 +13,8 @@ try {
             serviceAccount = JSON.parse(envVar);
             // Vercel dashboard flattens multi-line strings. Restore actual newlines needed by Firebase Admin.
             if (serviceAccount.private_key) {
-                // Handle both literal string "\n" and escaped "\\n"
-                serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+                // Handle Vercel literal string "\\n" properly by decoding it to an actual regex newline
+                serviceAccount.private_key = serviceAccount.private_key.replace(/\\\\n/g, '\n').replace(/\\n/g, '\n');
 
                 // Ensure it ends with a newline if missing
                 if (!serviceAccount.private_key.endsWith('\n')) {
