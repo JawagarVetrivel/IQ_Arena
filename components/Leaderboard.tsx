@@ -36,21 +36,21 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ entries, totalParticip
           </div>
         ) : (
           entries.map((entry) => (
-            <div 
-              key={entry.rank} 
+            <div
+              key={entry.rank}
               className={`flex items-center p-4 transition-colors ${entry.isCurrentUser ? 'bg-blue-600/20' : 'hover:bg-white/5'}`}
             >
-              <div className={`w-10 h-10 flex items-center justify-center font-black rounded-lg mr-4 ${
-                entry.rank === 1 ? 'bg-yellow-500 text-black' : 
-                entry.rank === 2 ? 'bg-gray-300 text-black' : 
-                entry.rank === 3 ? 'bg-amber-600 text-black' : 'bg-white/10 text-white'
-              }`}>
+              <div className={`w-10 h-10 flex items-center justify-center font-black rounded-lg mr-4 ${entry.rank === 1 ? 'bg-yellow-500 text-black' :
+                  entry.rank === 2 ? 'bg-gray-300 text-black' :
+                    entry.rank === 3 ? 'bg-amber-600 text-black' : 'bg-white/10 text-white'
+                }`}>
                 {entry.rank}
               </div>
               <div className="flex-grow">
                 <div className="font-bold flex items-center">
                   {entry.name}
                   {entry.isCurrentUser && <span className="ml-2 text-[10px] bg-blue-500 text-white px-2 py-0.5 rounded uppercase font-black">You</span>}
+                  {entry.isCreator && !entry.isCurrentUser && <span className="ml-2 text-[10px] bg-purple-500 text-white px-2 py-0.5 rounded uppercase font-black">Creator</span>}
                 </div>
                 <div className="text-xs text-white/40 uppercase tracking-widest">{entry.title}</div>
               </div>

@@ -28,6 +28,7 @@ export interface LeaderboardEntry {
   score: number;
   title: string;
   isCurrentUser?: boolean;
+  isCreator?: boolean;
 }
 
 export interface ChallengeData {

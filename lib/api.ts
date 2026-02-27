@@ -1,6 +1,6 @@
-import { QuizSubmission, QuizResult, ChallengeData, Question } from '../types';
+import { QuizSubmission, QuizResult, ChallengeData, Question, LeaderboardEntry } from '../types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://iq-arena-sigma.vercel.app/api';
+const API_URL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:8080/api' : 'https://iq-arena-sigma.vercel.app/api');
 
 export const startQuiz = async (): Promise<{ quizSessionId: string; questions: Question[] }> => {
   const response = await fetch(`${API_URL}/start-quiz`, {
@@ -48,6 +48,21 @@ export const getLeaderboard = async (challengeId: string): Promise<ChallengeData
 
   const data = await response.json();
 
+  const creatorEntry: LeaderboardEntry = {
+    rank: 0,
+    name: data.challengeRecord?.creatorName || "Arena Master",
+    score: data.challengeRecord?.creatorScore || 0,
+    title: data.challengeRecord?.creatorTitle || "Unknown",
+    isCreator: true,
+  };
+
+  const allParticipants = [creatorEntry, ...(data.participants || [])];
+  allParticipants.sort((a, b) => b.score - a.score);
+
+  allParticipants.forEach((p, index) => {
+    p.rank = index + 1;
+  });
+
   // Map backend response back to frontend expected shape
   return {
     challengeRecord: {
@@ -55,7 +70,22 @@ export const getLeaderboard = async (challengeId: string): Promise<ChallengeData
       creatorScore: data.challengeRecord?.creatorScore || 0,
       creatorTitle: data.challengeRecord?.creatorTitle || "Unknown"
     },
-    totalParticipants: data.totalParticipants,
-    leaderboard: data.participants,
+    totalParticipants: data.totalParticipants + 1,
+    leaderboard: allParticipants,
   };
+};
+
+export const getResult = async (challengeId: string, userName: string): Promise<QuizResult> => {
+  const response = await fetch(`${API_URL}/result/${challengeId}/${encodeURIComponent(userName)}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error('Result not found');
+  }
+
+  return response.json();
 };

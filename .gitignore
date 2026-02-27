@@ -30,3 +30,11 @@ serviceAccountKey.json
 firebase-key.json
 *.json.bak
 backend/serviceAccountKey.json
+
+# Local test and dev-only scripts (contain secrets)
+backend/test-init.js
+backend/test-firestore.js
+backend/test-parse.js
+backend/test-leaderboard.js
+backend/vercel-env.js
+backend/seed.js

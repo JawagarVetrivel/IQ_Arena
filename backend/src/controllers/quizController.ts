@@ -225,18 +225,6 @@ export const submitTest = async (req: Request, res: Response) => {
             percentile = Math.round((lowerCount / totalParticipants) * 100);
         }
 
-        // Build Participant Record
-        const participantData = {
-            challengeId: finalChallengeId,
-            userName: sanitizedUserName,
-            score: iqScore,
-            percentile,
-            timeTaken,
-            createdAt: admin.firestore.FieldValue.serverTimestamp()
-        };
-
-        await db.collection('participants').add(participantData);
-
         // VIRAL SPREAD MECHANIC: Always generate a brand new Challenge for this user to share.
         // This ensures every person who takes the test gets their own clean leaderboard 
         // while setting the pace for their friends with their newly achieved score.
@@ -250,6 +238,19 @@ export const submitTest = async (req: Request, res: Response) => {
             maxParticipants: 25,
             closed: false
         });
+
+        // Build Participant Record
+        const participantData = {
+            challengeId: finalChallengeId,
+            userName: sanitizedUserName,
+            score: iqScore,
+            percentile,
+            timeTaken,
+            sharedChallengeId, // Save so we can restore results when link is re-opened
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        };
+
+        await db.collection('participants').add(participantData);
 
         // Return response mapping the new sharedChallengeId for their friends
         return res.status(200).json({
@@ -266,3 +267,65 @@ export const submitTest = async (req: Request, res: Response) => {
         return res.status(500).json({ error: 'Internal server error while evaluating test' });
     }
 };
+
+export const getResult = async (req: Request, res: Response) => {
+    try {
+        if (!db) {
+            return res.status(500).json({ error: 'Database not initialized' });
+        }
+
+        const { challengeId, userName } = req.params;
+
+        if (!challengeId || !userName) {
+            return res.status(400).json({ error: 'Missing challengeId or userName' });
+        }
+
+        // Find the participant record in the participants collection
+        const participantsSnapshot = await db.collection('participants')
+            .where('challengeId', '==', challengeId)
+            .where('userName', '==', decodeURIComponent(userName))
+            .limit(1)
+            .get();
+
+        if (participantsSnapshot.empty) {
+            return res.status(404).json({ error: 'Result not found' });
+        }
+
+        const participantData = participantsSnapshot.docs[0].data();
+
+        // Also fetch the challenge to count participants and get sharedChallengeId
+        const challengeDoc = await db.collection('challenges').doc(challengeId).get();
+        const challengeData = challengeDoc.data() as any;
+
+        const allParticipantsSnapshot = await db.collection('participants')
+            .where('challengeId', '==', challengeId)
+            .count()
+            .get();
+        const totalParticipants = allParticipantsSnapshot.data().count;
+
+        // The sharedChallengeId stored in participant data OR challengeId itself as fallback
+        const sharedChallengeId = participantData.sharedChallengeId || challengeId;
+
+        const titleLogic = (score: number) => {
+            if (score < 90) return 'Raw Potential';
+            if (score <= 105) return 'Above Average';
+            if (score <= 120) return 'Strategic Thinker';
+            if (score <= 135) return 'Elite Problem Solver';
+            return 'Rare Mind';
+        };
+
+        return res.status(200).json({
+            score: participantData.score,
+            percentile: participantData.percentile,
+            title: titleLogic(participantData.score),
+            challengeId,
+            sharedChallengeId,
+            totalParticipants
+        });
+
+    } catch (error) {
+        console.error('Error fetching result:', error);
+        return res.status(500).json({ error: 'Internal server error while fetching result' });
+    }
+};
+

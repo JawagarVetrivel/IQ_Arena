@@ -13,7 +13,7 @@ const SESSION_QUESTION_COUNT = 20;
 const QuizPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const challengeId = searchParams.get('challengeId') || undefined;
+  const challengeId = searchParams.get('challengeId') || new URLSearchParams(window.location.search).get('challengeId') || undefined;
 
   // State
   const [currentIdx, setCurrentIdx] = useState(0);
