@@ -48,30 +48,46 @@ export const getLeaderboard = async (challengeId: string): Promise<ChallengeData
 
   const data = await response.json();
 
-  const creatorEntry: LeaderboardEntry = {
-    rank: 0,
-    name: data.challengeRecord?.creatorName || "Arena Master",
-    score: data.challengeRecord?.creatorScore || 0,
-    title: data.challengeRecord?.creatorTitle || "Unknown",
-    isCreator: true,
-  };
+  const creatorName = data.challengeRecord?.creatorName || "Arena Master";
+  const creatorScore = data.challengeRecord?.creatorScore || 0;
+  const creatorTitle = data.challengeRecord?.creatorTitle || "Unknown";
 
-  const allParticipants = [creatorEntry, ...(data.participants || [])];
-  allParticipants.sort((a, b) => b.score - a.score);
+  const participants: LeaderboardEntry[] = (data.participants || []).map((p: any) => ({ ...p }));
 
-  allParticipants.forEach((p, index) => {
+  // Check if the creator is already in the participants list
+  const existingCreator = participants.find(
+    (p) => p.name === creatorName && p.score === creatorScore
+  );
+
+  if (existingCreator) {
+    // Mark existing entry as creator
+    existingCreator.isCreator = true;
+  } else {
+    // Creator not in participants list yet, add them
+    participants.push({
+      rank: 0,
+      name: creatorName,
+      score: creatorScore,
+      title: creatorTitle,
+      isCreator: true,
+    });
+  }
+
+  participants.sort((a, b) => b.score - a.score);
+
+  participants.forEach((p, index) => {
     p.rank = index + 1;
   });
 
   // Map backend response back to frontend expected shape
   return {
     challengeRecord: {
-      creatorName: data.challengeRecord?.creatorName || "Arena Master",
-      creatorScore: data.challengeRecord?.creatorScore || 0,
-      creatorTitle: data.challengeRecord?.creatorTitle || "Unknown"
+      creatorName,
+      creatorScore,
+      creatorTitle,
     },
-    totalParticipants: data.totalParticipants + 1,
-    leaderboard: allParticipants,
+    totalParticipants: participants.length,
+    leaderboard: participants,
   };
 };
 
