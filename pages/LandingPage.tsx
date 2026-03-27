@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '../components/Button';
-import { AdSlot } from '../components/AdSlot';
+
 import { Leaderboard } from '../components/Leaderboard';
 import { ChallengeData } from '../types';
 import { getLeaderboard } from '../lib/api';
@@ -124,7 +124,6 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      <AdSlot />
 
       {/* Footer */}
       <footer className="py-12 px-6 border-t border-white/5 mt-auto">

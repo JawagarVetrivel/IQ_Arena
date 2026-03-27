@@ -5,7 +5,7 @@ import { getLeaderboard } from '../lib/api';
 import { ChallengeData } from '../types';
 import { Leaderboard } from '../components/Leaderboard';
 import { Button } from '../components/Button';
-import { AdSlot } from '../components/AdSlot';
+
 
 const ChallengePage: React.FC = () => {
   const { challengeId } = useParams<{ challengeId: string }>();
@@ -94,7 +94,7 @@ const ChallengePage: React.FC = () => {
               </div>
             </div>
 
-            <AdSlot />
+
           </div>
         </div>
       </div>

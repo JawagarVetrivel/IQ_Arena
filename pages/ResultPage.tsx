@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { ResultCard } from '../components/ResultCard';
 import { ShareButton } from '../components/ShareButton';
-import { AdSlot } from '../components/AdSlot';
+
 import { Leaderboard } from '../components/Leaderboard';
 import { QuizResult, ChallengeData } from '../types';
 import { getLeaderboard, getResult } from '../lib/api';
@@ -180,7 +180,7 @@ const ResultPage: React.FC = () => {
           </div>
         </div>
 
-        <AdSlot />
+
 
         <div className="text-center pt-12 pb-6 border-t border-white/5">
           <button
